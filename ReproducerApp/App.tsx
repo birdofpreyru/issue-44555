@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -24,6 +24,14 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+
+import {ping} from '@dr.pogodin/react-native-audio';
+
+import mobileAds, {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -62,12 +70,35 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const [adsReady, setAdsReady] = useState(false);
+
+  useEffect(() => {
+    const action = () => {
+      (async () => {
+        console.log(new Date().toISOString(), 'Ping');
+        console.log(await ping());
+        setTimeout(action, 1000);
+      })();
+    };
+    action();
+
+    mobileAds()
+      .initialize()
+      .then(() => setAdsReady(true));
+  }, []);
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
+      {adsReady ? (
+        <BannerAd
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          unitId={TestIds.BANNER}
+        />
+      ) : null}
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
